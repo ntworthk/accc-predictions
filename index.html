@@ -165,10 +165,7 @@
                 ctx.fillStyle = '#4682B4';
                 ctx.fill();
                 
-                ctx.fillStyle = '#000';
-                ctx.font = '14px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(bucket.count, bucket.x + bucket.width/2, bucket.y + 30);
+
             });
         }
 
@@ -226,7 +223,7 @@
                     
                     ball.directionX = dx / distance;
                     ball.directionY = dy / distance;
-                    ball.speed = 5;
+                    ball.speed = 3;
                 }
             } else if (ball.phase === 'shooting') {
                 ball.x += ball.directionX * ball.speed;
