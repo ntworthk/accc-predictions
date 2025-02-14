@@ -283,6 +283,7 @@
 
                 if (!response.ok) throw new Error('Failed to submit vote');
 
+                hasSubmitted = true;
                 // Refresh buckets after submission
                 await initializeBuckets();
 
