@@ -62,11 +62,17 @@
             margin-top: 20px;
             font-size: 16px;
             color: #333;
-            opacity: 0;
-            transition: opacity 0.75s ease-in;
             max-width: 600px;
             text-align: center;
             word-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .stat-line {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -135,12 +141,33 @@
                                     const formattedMedian = formatNumber(median);
                                     const formattedMean = formatNumber(mean);
                                     
+                                    // Clear previous stats
+                                    statsDiv.innerHTML = '';
+                                    
+                                    // Create sentences array
+                                    let sentences = [];
+                                    sentences.push(`You think ${formattedVote} mergers will be notified in 2026.`);
+                                    
                                     if (userVote === median) {
-                                        statsDiv.textContent = `You think ${formattedVote} mergers will be notified in 2026. You are the median voter! The average guess is ${formattedMean}.`;
+                                        sentences.push(`You are the median voter!`);
                                     } else {
-                                        statsDiv.textContent = `You think ${formattedVote} mergers will be notified in 2026. This compares to ${formattedMedian} for the median voter. The average guess is ${formattedMean}.`;
+                                        sentences.push(`This compares to ${formattedMedian} for the median voter.`);
                                     }
-                                    statsDiv.style.opacity = '1';
+                                    
+                                    sentences.push(`The average guess is ${formattedMean}.`);
+                                    
+                                    // Create and animate elements
+                                    sentences.forEach((sentence, index) => {
+                                        const div = document.createElement('div');
+                                        div.className = 'stat-line';
+                                        div.textContent = sentence;
+                                        statsDiv.appendChild(div);
+                                        
+                                        // Stagger the animations
+                                        setTimeout(() => {
+                                            div.style.opacity = '1';
+                                        }, 500 + (index * 500)); // 500ms delay between each sentence
+                                    });
                                 }
                             }
                         },
