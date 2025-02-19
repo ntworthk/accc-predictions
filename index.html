@@ -52,6 +52,13 @@
             color: red;
             margin-top: 10px;
         }
+        #stats {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+            opacity: 0;
+            transition: opacity 0.75s ease-in;
+        }
     </style>
 </head>
 <body>
@@ -60,6 +67,7 @@
         <input type="number" id="answer" min="0" required>
         <button id="submitButton" onclick="submitAnswer()" disabled>Submit</button>
         <div id="error"></div>
+        <div id="stats"></div>
     </div>
     <div class="chart-container">
         <canvas id="chart"></canvas>
@@ -102,7 +110,14 @@
                         maintainAspectRatio: false,
                         animation: {
                             duration: 750,
-                            easing: 'easeInOutQuart'
+                            easing: 'easeInOutQuart',
+                            onComplete: function() {
+                                if (hasSubmitted) {
+                                    const statsDiv = document.getElementById('stats');
+                                    statsDiv.textContent = `The median voter thinks ${data.median} will be notified. The average guess is ${Math.round(data.mean)}.`;
+                                    statsDiv.style.opacity = '1';
+                                }
+                            }
                         },
                         plugins: {
                             legend: {
@@ -186,6 +201,7 @@
                 if (!response.ok) throw new Error('Failed to submit vote');
 
                 hasSubmitted = true;
+                document.getElementById('stats').style.opacity = '0';
                 // Refresh chart
                 await initializeChart();
                 
