@@ -253,7 +253,6 @@
                 if (!response.ok) throw new Error('Failed to submit vote');
 
                 hasSubmitted = true;
-                document.getElementById('stats').style.opacity = '0';
                 // Store the last submitted value for the stats message
                 document.getElementById('answer').dataset.lastSubmitted = answer;
                 // Refresh chart
