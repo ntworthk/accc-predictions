@@ -40,6 +40,12 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+        .visualization-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
         .chart-container {
             width: 600px;
             height: 400px;
@@ -67,10 +73,12 @@
         <input type="number" id="answer" min="0" required>
         <button id="submitButton" onclick="submitAnswer()" disabled>Submit</button>
         <div id="error"></div>
-        <div id="stats"></div>
     </div>
-    <div class="chart-container">
-        <canvas id="chart"></canvas>
+    <div class="visualization-container">
+        <div id="stats"></div>
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
     </div>
 
     <script>
@@ -114,7 +122,15 @@
                             onComplete: function() {
                                 if (hasSubmitted) {
                                     const statsDiv = document.getElementById('stats');
-                                    statsDiv.textContent = `The median voter thinks ${data.median} will be notified. The average guess is ${Math.round(data.mean)}.`;
+                                    const userVote = parseInt(document.getElementById('answer').dataset.lastSubmitted);
+                                    const median = data.summary_results[0].median;
+                                    const mean = Math.round(data.summary_results[0].mean);
+                                    
+                                    if (userVote === median) {
+                                        statsDiv.textContent = `You think ${userVote} mergers will be notified in 2026. You are the median voter! The average guess is ${mean}.`;
+                                    } else {
+                                        statsDiv.textContent = `You think ${userVote} mergers will be notified in 2026. This compares to ${median} for the median voter. The average guess is ${mean}.`;
+                                    }
                                     statsDiv.style.opacity = '1';
                                 }
                             }
@@ -202,6 +218,8 @@
 
                 hasSubmitted = true;
                 document.getElementById('stats').style.opacity = '0';
+                // Store the last submitted value for the stats message
+                document.getElementById('answer').dataset.lastSubmitted = answer;
                 // Refresh chart
                 await initializeChart();
                 
