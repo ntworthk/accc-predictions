@@ -19,7 +19,6 @@
             margin: 20px;
             text-align: center;
             width: 90%;
-            max-width: 600px;
         }
         h2 {
             font-size: 1.5rem;
@@ -89,34 +88,22 @@
             line-height: 1.5;
         }
         
-        .slider-container {
-            width: 100%;
-            max-width: 300px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .slider {
-            width: 100%;
-            margin: 10px 0;
-        }
-        
         @media (max-width: 768px) {
             h2 {
-                font-size: var(--mobile-text-size, 1.6rem);
-                margin-bottom: 1rem;
+                font-size: 2rem;
+                margin-bottom: 1.5rem;
             }
             input[type="number"] {
-                width: 180px;
-                font-size: var(--mobile-text-size, 1.6rem);
-                padding: 14px;
+                width: 200px;
+                font-size: 2rem;
+                padding: 16px;
             }
             button {
-                font-size: var(--mobile-text-size, 1.6rem);
-                padding: 14px 28px;
+                font-size: 2rem;
+                padding: 16px 32px;
             }
             #stats {
-                font-size: var(--mobile-text-size, 1.6rem);
+                font-size: 2rem;
             }
             .chart-container {
                 height: 350px;
@@ -146,10 +133,6 @@
         <div id="stats"></div>
         <div class="chart-container">
             <canvas id="chart"></canvas>
-        </div>
-        <div class="slider-container">
-            <label for="textSize">Mobile Text Size (px): <span id="sizeValue">16</span></label>
-            <input type="range" id="textSize" min="16" max="40" value="24" class="slider">
         </div>
     </div>
 
@@ -328,16 +311,6 @@
                 console.error('Error:', error);
             }
         }
-
-        // Text size slider functionality
-        const textSizeSlider = document.getElementById('textSize');
-        const sizeValueDisplay = document.getElementById('sizeValue');
-        
-        textSizeSlider.addEventListener('input', function() {
-            const size = this.value;
-            sizeValueDisplay.textContent = size;
-            document.documentElement.style.setProperty('--mobile-text-size', `${size}px`);
-        });
 
         initializeChart();
     </script>
