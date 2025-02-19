@@ -64,6 +64,9 @@
             color: #333;
             opacity: 0;
             transition: opacity 0.75s ease-in;
+            max-width: 600px;
+            text-align: center;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -126,10 +129,16 @@
                                     const median = data.summary_results[0].median;
                                     const mean = Math.round(data.summary_results[0].mean);
                                     
+                                    // Format numbers with commas if > 1000
+                                    const formatNumber = (num) => num > 1000 ? num.toLocaleString() : num;
+                                    const formattedVote = formatNumber(userVote);
+                                    const formattedMedian = formatNumber(median);
+                                    const formattedMean = formatNumber(mean);
+                                    
                                     if (userVote === median) {
-                                        statsDiv.textContent = `You think ${userVote} mergers will be notified in 2026. You are the median voter! The average guess is ${mean}.`;
+                                        statsDiv.textContent = `You think ${formattedVote} mergers will be notified in 2026. You are the median voter! The average guess is ${formattedMean}.`;
                                     } else {
-                                        statsDiv.textContent = `You think ${userVote} mergers will be notified in 2026. This compares to ${median} for the median voter. The average guess is ${mean}.`;
+                                        statsDiv.textContent = `You think ${formattedVote} mergers will be notified in 2026. This compares to ${formattedMedian} for the median voter. The average guess is ${formattedMean}.`;
                                     }
                                     statsDiv.style.opacity = '1';
                                 }
