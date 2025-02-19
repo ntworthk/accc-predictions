@@ -148,7 +148,7 @@
             if (!buckets || buckets.length === 0) return -1;
             
             return buckets.findIndex(bucket => {
-                const range = bucket.range;
+                const range = bucket.bucket;
                 if (range.endsWith('+')) {
                     return value >= parseInt(range);
                 }
