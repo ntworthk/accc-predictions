@@ -5,6 +5,7 @@
     <title>ACCC Merger Survey</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
+        /* Desktop styles */
         body {
             display: flex;
             flex-direction: column;
@@ -89,22 +90,23 @@
             line-height: 1.5;
         }
         
-        @media (max-width: 768px) {
+        /* Tablet and Mobile styles */
+        @media screen and (max-width: 768px) {
             h2 {
-                font-size: 2rem;
-                margin-bottom: 1.5rem;
+                font-size: 1.7rem;
             }
             input[type="number"] {
                 width: 200px;
-                font-size: 2rem;
+                font-size: 1.7rem;
                 padding: 16px;
             }
             button {
-                font-size: 2rem;
+                font-size: 1.7rem;
                 padding: 16px 32px;
+                margin-top: 20px;
             }
             #stats {
-                font-size: 2rem;
+                font-size: 1.7rem;
             }
             .chart-container {
                 height: 350px;
@@ -112,7 +114,8 @@
             }
         }
         
-        @media (max-width: 480px) {
+        /* Small Mobile styles */
+        @media screen and (max-width: 480px) {
             body {
                 padding: 15px;
             }
@@ -141,6 +144,46 @@
         let chart;
         let buckets = [];
         let hasSubmitted = false;
+
+        function updateStats(data, userVote) {
+            const statsDiv = document.getElementById('stats');
+            const median = data.summary_results[0].median;
+            const mean = Math.round(data.summary_results[0].mean);
+            
+            // Format numbers with commas if > 1000
+            const formatNumber = (num) => num > 1000 ? num.toLocaleString() : num;
+            const formattedVote = formatNumber(userVote);
+            const formattedMedian = formatNumber(median);
+            const formattedMean = formatNumber(mean);
+            
+            // Clear previous stats
+            statsDiv.innerHTML = '';
+            
+            // Create sentences array
+            let sentences = [];
+            sentences.push(`You think ${formattedVote} mergers will be notified in 2026.`);
+            
+            if (userVote === median) {
+                sentences.push(`You are the median voter!`);
+            } else {
+                sentences.push(`This compares to ${formattedMedian} for the median voter.`);
+            }
+            
+            sentences.push(`The average guess is ${formattedMean}.`);
+            
+            // Create and animate elements
+            sentences.forEach((sentence, index) => {
+                const div = document.createElement('div');
+                div.className = 'stat-line';
+                div.textContent = sentence;
+                statsDiv.appendChild(div);
+                
+                // Stagger the animations
+                setTimeout(() => {
+                    div.style.opacity = '1';
+                }, 500 + (index * 500));
+            });
+        }
 
         async function initializeChart() {
             try {
@@ -173,50 +216,8 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         animation: {
-                            duration: 750,
-                            easing: 'easeInOutQuart',
-                            onComplete: function() {
-                                if (hasSubmitted) {
-                                    const statsDiv = document.getElementById('stats');
-                                    const userVote = parseInt(document.getElementById('answer').dataset.lastSubmitted);
-                                    const median = data.summary_results[0].median;
-                                    const mean = Math.round(data.summary_results[0].mean);
-                                    
-                                    // Format numbers with commas if > 1000
-                                    const formatNumber = (num) => num > 1000 ? num.toLocaleString() : num;
-                                    const formattedVote = formatNumber(userVote);
-                                    const formattedMedian = formatNumber(median);
-                                    const formattedMean = formatNumber(mean);
-                                    
-                                    // Clear previous stats
-                                    statsDiv.innerHTML = '';
-                                    
-                                    // Create sentences array
-                                    let sentences = [];
-                                    sentences.push(`You think ${formattedVote} mergers will be notified in 2026.`);
-                                    
-                                    if (userVote === median) {
-                                        sentences.push(`You are the median voter!`);
-                                    } else {
-                                        sentences.push(`This compares to ${formattedMedian} for the median voter.`);
-                                    }
-                                    
-                                    sentences.push(`The average guess is ${formattedMean}.`);
-                                    
-                                    // Create and animate elements
-                                    sentences.forEach((sentence, index) => {
-                                        const div = document.createElement('div');
-                                        div.className = 'stat-line';
-                                        div.textContent = sentence;
-                                        statsDiv.appendChild(div);
-                                        
-                                        // Stagger the animations
-                                        setTimeout(() => {
-                                            div.style.opacity = '1';
-                                        }, 500 + (index * 500)); // 500ms delay between each sentence
-                                    });
-                                }
-                            }
+                            duration: hasSubmitted ? 750 : 0,
+                            easing: 'easeInOutQuart'
                         },
                         plugins: {
                             legend: {
@@ -247,11 +248,22 @@
                                     display: true,
                                     color: 'black',
                                     width: 2
+                                },
+                                ticks: {
+                                    font: {
+                                        size: window.innerWidth <= 768 ? 14 : 12
+                                    }
                                 }
                             }
                         }
                     }
                 });
+
+                // Only update stats after submission
+                if (hasSubmitted) {
+                    const userVote = parseInt(document.getElementById('answer').dataset.lastSubmitted);
+                    updateStats(data, userVote);
+                }
             } catch (error) {
                 document.getElementById('error').textContent = 'Failed to load data';
                 console.error('Error:', error);
@@ -301,8 +313,9 @@
 
                 hasSubmitted = true;
                 // Store the last submitted value for the stats message
+                const userVote = parseInt(answer);
                 document.getElementById('answer').dataset.lastSubmitted = answer;
-                // Refresh chart
+                // Refresh chart and update stats
                 await initializeChart();
                 
                 document.getElementById('answer').value = '';
