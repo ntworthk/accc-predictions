@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>ACCC Merger Survey</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         body {
             display: flex;
@@ -11,31 +12,37 @@
             margin: 0;
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            padding: 20px;
         }
         .survey-form {
             margin: 20px;
             text-align: center;
         }
         input[type="number"] {
-            padding: 5px;
+            padding: 8px;
             margin: 10px;
-            width: 100px;
+            width: 120px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
-        #gameCanvas {
+        button {
+            padding: 8px 16px;
+            background-color: #4682B4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #357599;
+        }
+        .chart-container {
+            width: 600px;
+            height: 400px;
             background-color: white;
-            border: 2px solid #333;
-            margin-top: 20px;
-        }
-        #bucketLabels {
-            width: 400px;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-            font-size: 12px;
-        }
-        .bucket-label {
-            width: 80px;
-            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         #error {
             color: red;
@@ -50,123 +57,81 @@
         <button onclick="submitAnswer()">Submit</button>
         <div id="error"></div>
     </div>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <div id="bucketLabels"></div>
+    <div class="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const BUCKET_HEIGHT = 200;
+        let chart;
         let buckets = [];
-        
-        const ball = {
-            x: canvas.width / 2,
-            y: 50,
-            radius: 10,
-            speed: 0,
-            dx: 0,
-            dy: 0,
-            active: false,
-            phase: 'dropping',
-            targetBucket: null
-        };
 
-        const turret = {
-            currentAngle: Math.PI/2,
-            targetAngle: Math.PI/2,
-            rotationSpeed: 0.1,
-            length: 30
-        };
-
-        const centralBox = {
-            x: canvas.width/2 - 40,
-            y: canvas.height/4 - 40,
-            width: 80,
-            height: 80
-        };
-
-        async function initializeBuckets() {
+        async function initializeChart() {
             try {
                 const response = await fetch('https://cardioid.co.nz/api/get_votes');
                 const data = await response.json();
                 if (data.status !== "success") throw new Error("Failed to get votes");
                 
-                const bucketWidth = canvas.width / data.votes.length;
-                buckets = data.votes.map((vote, i) => ({
-                    x: i * bucketWidth,
-                    width: bucketWidth,
-                    y: canvas.height - BUCKET_HEIGHT,
-                    height: BUCKET_HEIGHT,
-                    count: vote.n,
-                    range: vote.bucket
-                }));
-
-                const labelsDiv = document.getElementById('bucketLabels');
-                labelsDiv.innerHTML = '';
-                data.votes.forEach(vote => {
-                    const label = document.createElement('div');
-                    label.className = 'bucket-label';
-                    label.textContent = vote.bucket;
-                    labelsDiv.appendChild(label);
-                });
+                buckets = data.votes;
                 
-                drawBuckets();
-                gameLoop();
+                const ctx = document.getElementById('chart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: buckets.map(b => b.bucket),
+                        datasets: [{
+                            label: 'Number of Votes',
+                            data: buckets.map(b => b.n),
+                            backgroundColor: 'rgba(70, 130, 180, 0.8)',
+                            borderColor: 'rgba(70, 130, 180, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 750,
+                            easing: 'easeInOutQuart'
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Vote Distribution',
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Votes'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Number of Mergers'
+                                }
+                            }
+                        }
+                    }
+                });
             } catch (error) {
-                document.getElementById('error').textContent = 'Failed to load bucket ranges';
+                document.getElementById('error').textContent = 'Failed to load data';
                 console.error('Error:', error);
             }
-        }
-
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#4682B4';
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        function drawCentralBox() {
-            ctx.beginPath();
-            ctx.rect(centralBox.x, centralBox.y, centralBox.width, centralBox.height);
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            const turretX = canvas.width / 2;
-            const turretY = centralBox.y + centralBox.height;
-            
-            ctx.beginPath();
-            ctx.arc(turretX, turretY, 10, 0, Math.PI * 2);
-            ctx.fillStyle = '#666';
-            ctx.fill();
-            
-            ctx.save();
-            ctx.translate(turretX, turretY);
-            ctx.rotate(turret.currentAngle);
-            ctx.beginPath();
-            ctx.rect(0, -5, turret.length, 10);
-            ctx.fillStyle = '#444';
-            ctx.fill();
-            ctx.restore();
-        }
-
-        function drawBuckets() {
-            const maxCount = Math.max(...buckets.map(b => b.count));
-            buckets.forEach((bucket, i) => {
-                ctx.beginPath();
-                ctx.rect(bucket.x, bucket.y, bucket.width, bucket.height);
-                ctx.strokeStyle = '#333';
-                ctx.stroke();
-                
-                const fillHeight = maxCount > 0 ? (bucket.count / maxCount) * bucket.height : 0;
-                ctx.beginPath();
-                ctx.rect(bucket.x, bucket.y + bucket.height - fillHeight, bucket.width, fillHeight);
-                ctx.fillStyle = '#4682B4';
-                ctx.fill();
-                
-
-            });
         }
 
         function getBucketIndex(value) {
@@ -178,81 +143,6 @@
                 const [min, max] = range.split('-').map(Number);
                 return value >= min && value <= max;
             });
-        }
-
-        function update() {
-            if (!ball.active) return;
-
-            if (ball.phase === 'dropping') {
-                ball.dy += 0.2;
-                ball.y += ball.dy;
-
-                if (ball.y > centralBox.y && 
-                    ball.x > centralBox.x && 
-                    ball.x < centralBox.x + centralBox.width) {
-                    
-                    ball.x = canvas.width/2;
-                    ball.y = centralBox.y + centralBox.height;
-                    ball.dy = 0;
-                    
-                    const targetX = buckets[ball.targetBucket].x + buckets[ball.targetBucket].width/2;
-                    const targetY = buckets[ball.targetBucket].y;
-                    const turretX = canvas.width/2;
-                    const turretY = centralBox.y + centralBox.height;
-                    turret.targetAngle = Math.atan2(targetY - turretY, targetX - turretX);
-                    
-                    ball.phase = 'aiming';
-                }
-            } else if (ball.phase === 'aiming') {
-                const angleDiff = Math.abs(turret.targetAngle - turret.currentAngle);
-                if (angleDiff > 0.01) {
-                    turret.currentAngle += (turret.targetAngle - turret.currentAngle) * turret.rotationSpeed;
-                } else {
-                    ball.phase = 'shooting';
-                    const turretX = canvas.width/2;
-                    const turretY = centralBox.y + centralBox.height;
-                    const angle = turret.currentAngle;
-                    ball.x = turretX + Math.cos(angle) * turret.length;
-                    ball.y = turretY + Math.sin(angle) * turret.length;
-                    
-                    const targetX = buckets[ball.targetBucket].x + buckets[ball.targetBucket].width/2;
-                    const targetY = buckets[ball.targetBucket].y;
-                    const dx = targetX - ball.x;
-                    const dy = targetY - ball.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    ball.directionX = dx / distance;
-                    ball.directionY = dy / distance;
-                    ball.speed = 3;
-                }
-            } else if (ball.phase === 'shooting') {
-                ball.x += ball.directionX * ball.speed;
-                ball.y += ball.directionY * ball.speed;
-                
-                if (ball.y >= buckets[ball.targetBucket].y) {
-                    ball.active = false;
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawCentralBox();
-            drawBuckets();
-            
-            if (ball.active && !(ball.phase === 'aiming' || 
-                (ball.y > centralBox.y && 
-                ball.y < centralBox.y + centralBox.height &&
-                ball.x > centralBox.x && 
-                ball.x < centralBox.x + centralBox.width))) {
-                drawBall();
-            }
-        }
-
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
         }
 
         async function submitAnswer() {
@@ -283,22 +173,8 @@
 
                 if (!response.ok) throw new Error('Failed to submit vote');
 
-                hasSubmitted = true;
-                // Refresh buckets after submission
-                await initializeBuckets();
-
-                // Start animation
-                ball.x = canvas.width / 2;
-                ball.y = 50;
-                ball.dy = 0;
-                ball.dx = 0;
-                ball.active = true;
-                ball.phase = 'dropping';
-                ball.targetBucket = bucketIndex;
-                ball.directionX = 0;
-                ball.directionY = 0;
-                turret.currentAngle = Math.PI/2;
-                turret.targetAngle = Math.PI/2;
+                // Refresh chart
+                await initializeChart();
                 
                 document.getElementById('answer').value = '';
                 document.getElementById('error').textContent = '';
@@ -308,7 +184,7 @@
             }
         }
 
-        initializeBuckets();
+        initializeChart();
     </script>
 </body>
 </html>
