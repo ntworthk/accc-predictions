@@ -89,22 +89,34 @@
             line-height: 1.5;
         }
         
+        .slider-container {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
         @media (max-width: 768px) {
             h2 {
-                font-size: 1.3rem;
+                font-size: var(--mobile-text-size, 1.6rem);
                 margin-bottom: 1rem;
             }
             input[type="number"] {
                 width: 180px;
-                font-size: 1.2rem;
+                font-size: var(--mobile-text-size, 1.6rem);
                 padding: 14px;
             }
             button {
-                font-size: 1.2rem;
+                font-size: var(--mobile-text-size, 1.6rem);
                 padding: 14px 28px;
             }
             #stats {
-                font-size: 1.2rem;
+                font-size: var(--mobile-text-size, 1.6rem);
             }
             .chart-container {
                 height: 350px;
@@ -115,9 +127,6 @@
         @media (max-width: 480px) {
             body {
                 padding: 15px;
-            }
-            h2 {
-                font-size: 1.2rem;
             }
             .chart-container {
                 height: 300px;
@@ -137,6 +146,10 @@
         <div id="stats"></div>
         <div class="chart-container">
             <canvas id="chart"></canvas>
+        </div>
+        <div class="slider-container">
+            <label for="textSize">Mobile Text Size (px): <span id="sizeValue">16</span></label>
+            <input type="range" id="textSize" min="16" max="40" value="24" class="slider">
         </div>
     </div>
 
@@ -303,7 +316,6 @@
                 if (!response.ok) throw new Error('Failed to submit vote');
 
                 hasSubmitted = true;
-                document.getElementById('stats').style.opacity = '0';
                 // Store the last submitted value for the stats message
                 document.getElementById('answer').dataset.lastSubmitted = answer;
                 // Refresh chart
@@ -316,6 +328,16 @@
                 console.error('Error:', error);
             }
         }
+
+        // Text size slider functionality
+        const textSizeSlider = document.getElementById('textSize');
+        const sizeValueDisplay = document.getElementById('sizeValue');
+        
+        textSizeSlider.addEventListener('input', function() {
+            const size = this.value;
+            sizeValueDisplay.textContent = size;
+            document.documentElement.style.setProperty('--mobile-text-size', `${size}px`);
+        });
 
         initializeChart();
     </script>
