@@ -36,7 +36,7 @@
         }
         button {
             padding: 12px 24px;
-            background-color: #4682B4;
+            background-color: #008698;
             color: white;
             border: none;
             border-radius: 4px;
@@ -44,7 +44,7 @@
             font-size: 1.1rem;
         }
         button:hover {
-            background-color: #357599;
+            background-color: #024d57;
         }
         button:disabled {
             background-color: #cccccc;
@@ -216,8 +216,8 @@
                         labels: buckets.map(b => b.bucket),
                         datasets: [{
                             data: hasSubmitted ? buckets.map(b => b.n) : Array(buckets.length).fill(0),
-                            backgroundColor: 'rgba(70, 130, 180, 0.8)',
-                            borderColor: 'rgba(70, 130, 180, 1)',
+                            backgroundColor: 'rgba(0, 134, 152, 0.8)',
+                            borderColor: 'rgba(0, 134, 152, 1)',
                             borderWidth: 1
                         }]
                     },
