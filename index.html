@@ -296,6 +296,11 @@
             const answer = document.getElementById('answer').value;
             if (!answer) return;
 
+            if (answer > 1000000) {
+                document.getElementById('error').textContent = "You can't be serious - not a chance there's more than a million mergers notified! Please try again";
+                return;
+            }
+
             const bucketIndex = getBucketIndex(parseInt(answer));
             if (bucketIndex === -1) {
                 document.getElementById('error').textContent = 'Invalid answer range';
